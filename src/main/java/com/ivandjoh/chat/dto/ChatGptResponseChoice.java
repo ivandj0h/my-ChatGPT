@@ -5,5 +5,4 @@ public record ChatGptResponseChoice(
         int index,
         Object logprobs,
         String finish_reason
-) {
-}
+) { }
