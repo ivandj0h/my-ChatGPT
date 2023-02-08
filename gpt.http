@@ -1,0 +1,10 @@
+POST https://api.openai.com/v1/completions
+Content-Type: application/json
+Authorization: Bearer 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
+
+{
+  "model": "text-davinci-001",
+  "prompt": "what is java command to running thread?",
+  "max_tokens": 100,
+  "temperature": 1
+}
