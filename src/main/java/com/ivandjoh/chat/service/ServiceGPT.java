@@ -13,7 +13,6 @@ import java.util.Scanner;
 @Service
 public class ServiceGPT {
 
-
     public static void serviceExec() throws IOException, InterruptedException {
 
         Dotenv dotenv = Dotenv.load();
