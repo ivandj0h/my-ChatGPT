@@ -1,5 +1,8 @@
 package com.ivandjoh.chat.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ivandjoh.chat.http.ChatGptRequest;
+import com.ivandjoh.chat.http.ChatGptResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 
@@ -13,38 +16,40 @@ import java.util.Scanner;
 @Service
 public class ServiceGPT {
 
-    public static void serviceExec() throws IOException, InterruptedException {
+    public static void serviceExec(String[] args) throws IOException, InterruptedException {
 
         Dotenv dotenv = Dotenv.load();
+        String prompt;
+        if (args.length > 0) {
+            prompt = args[0];
+        } else {
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter a string to search for: ");
+            prompt = scanner.nextLine();
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        ChatGptRequest chatGptRequest = new ChatGptRequest("text-davinci-001", prompt, 1, 100);
+        String input = mapper.writeValueAsString(chatGptRequest);
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Please Enter a String to search for: ");
-
-        String searchStr = scanner.nextLine();
-
-        String userInput = """
-                {
-                    "model": "text-davinci-001",
-                    "prompt": "%s",
-                    "temperature": 0.9,
-                    "max_tokens": 100
-                }
-                """.formatted(searchStr);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.openai.com/v1/completions"))
                 .header("Content-Type", "application/json")
                 .header("Authorization","Bearer " + dotenv.get("OPEN_AI_API_KEY"))
-                .POST(HttpRequest.BodyPublishers.ofString(userInput))
+                .POST(HttpRequest.BodyPublishers.ofString(input))
                 .build();
 
-        HttpClient client = HttpClient.newHttpClient();
+        var client = HttpClient.newHttpClient();
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        var response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-
-        try {
-            System.out.println(response.get().body());
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(response.statusCode() == 200) {
+            ChatGptResponse chatGptResponse = mapper.readValue(response.body(), ChatGptResponse.class);
+            String answer = chatGptResponse.choices()[chatGptResponse.choices().length-1].text();
+            if(!answer.isEmpty()) {
+                System.out.println(answer.replace("\n","").trim());
+            }
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
         }
     }
 }
