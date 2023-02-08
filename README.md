@@ -1,4 +1,4 @@
-# My ChatGPT
+# My ChatGPT - On Progress Development
 
 ## Description
 This is a Java CLI Application that talks to the [ChatGPT](https://chat.openai.com/auth/login)
